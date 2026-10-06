@@ -1,0 +1,28 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+    paths: [index.html]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::706922780999:role/github-actions-deploy
+          aws-region: eu-north-1
+
+      - name: Upload page to S3
+        run: aws s3 cp index.html s3://reejan-pariyar-cloud-resume-2026/index.html
+
+      - name: Clear CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id EISCBXEPWQYWC --paths "/index.html"
