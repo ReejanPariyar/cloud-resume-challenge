@@ -1,25 +1,35 @@
 # Cloud Resume Challenge
 
-A personal resume site deployed as a real, live AWS cloud project, not just hosted, but built to understand the full infrastructure behind it.
+My CV as a website, hosted on AWS: https://d39rgsyhh5t880.cloudfront.net
 
-**Live site:** https://d39rgsyhh5t880.cloudfront.net
+I built this by hand in the AWS CLI and console first, so I'd understand each piece before rebuilding it in Terraform.
 
-## What I did
+## How it works
 
-I hosted a static HTML resume on Amazon S3, configuring it for public static website hosting. This required removing S3's default "Block Public Access" protections and applying a custom bucket policy to grant public read access, a deliberate security trade-off, since S3 buckets are private by default.
+The site is one HTML file in an S3 bucket with static website hosting turned on. S3 website hosting only serves over HTTP, so I put CloudFront in front of it to get HTTPS. CloudFront talks to S3 over HTTP, which is fine because that part stays inside AWS. Visitors still connect over HTTPS.
 
-I then added Amazon CloudFront in front of the S3 origin to serve the site over HTTPS (S3 static hosting alone only supports HTTP). During setup, I hit a real 504 Gateway Timeout error. I diagnosed the cause by inspecting the CloudFront origin settings and discovered that S3 website endpoints only support HTTP on the backend connection, not HTTPS. Fixing the origin protocol setting resolved it.
+The visitor counter is a small Python Lambda function. When the page loads, the JavaScript calls the function's URL, the function adds 1 to a number stored in a DynamoDB table, and the new number comes back and gets shown on the page. The function's IAM role can only update that one table and nothing else.
 
-## Tech stack
+```
+browser -> CloudFront -> S3 (the page)
+browser -> Lambda URL -> Lambda -> DynamoDB (the counter)
+```
 
-- Amazon S3 (static website hosting)
-- Amazon CloudFront (HTTPS, global CDN)
-- AWS CLI
-- Git & GitHub
+## Things that went wrong
 
-## Coming next
+CloudFront gave me a 504 at first. It was trying to reach the S3 website endpoint over HTTPS, which that endpoint doesn't support. Setting the origin protocol to HTTP only fixed it.
 
-- Custom domain via Route 53
-- Visitor counter with Lambda + DynamoDB
-- Rebuild infrastructure as Terraform code
-- Automated deployment with GitHub Actions
+The Lambda URL returned a 403 even after I'd added the public access permission. AWS now needs a second one (lambda:InvokeFunction, for calls through the function URL), so I added that too.
+
+After updating index.html in S3 the old page kept showing, because CloudFront had cached it. I clear the cache with an invalidation after each upload.
+
+## Still to do
+
+Rebuild everything in Terraform, deploy with GitHub Actions, and add tests for the Lambda function.
+
+## Files
+
+- index.html is the page and the counter script
+- counter/lambda_function.py is the Lambda function
+- policy.json is the S3 public read policy
+- trust-policy.json is what lets Lambda use its IAM role
