@@ -1,0 +1,24 @@
+name: Test Lambda
+
+on:
+  push:
+    paths: ["counter/**"]
+  pull_request:
+    paths: ["counter/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install boto3 pytest
+
+      - name: Run tests
+        working-directory: counter
+        run: python -m pytest -v

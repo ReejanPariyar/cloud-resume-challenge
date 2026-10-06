@@ -1,2 +1,4 @@
 counter/function.zip
 counter/out.json
+__pycache__/
+.pytest_cache/
