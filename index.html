@@ -15,7 +15,7 @@
   li { margin-bottom: 4px; }
   .skills-group { margin-bottom: 8px; }
   .skills-group strong { color: #4dd0e1; }
-  #visitor-count { color: #999; font-size: 13px; margin-top: 40px; }
+  .visitor-box { color: #999; font-size: 13px; margin-top: 40px; }
 </style>
 </head>
 <body>
@@ -84,7 +84,18 @@
 <h2>Certifications</h2>
 <p>AWS Certified Cloud Practitioner (CLF-C02) &mdash; In Progress</p>
 
-<div id="visitor-count">Loading visitor count...</div>
+<div class="visitor-box">Visitors: <span id="visitor-count">...</span></div>
 
+
+<script>
+  fetch("https://dn6p7p2betv3u2i3a5zhybsjyy0dvlqo.lambda-url.eu-north-1.on.aws/")
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      document.getElementById("visitor-count").textContent = data.count;
+    })
+    .catch(function () {
+      document.getElementById("visitor-count").textContent = "unavailable";
+    });
+</script>
 </body>
 </html>
