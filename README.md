@@ -23,9 +23,11 @@ The Lambda URL returned a 403 even after I'd added the public access permission.
 
 After updating index.html in S3 the old page kept showing, because CloudFront had cached it. I clear the cache with an invalidation after each upload.
 
-## Still to do
+## Deploys, tests and what's left
 
-Rebuild everything in Terraform, deploy with GitHub Actions, and add tests for the Lambda function.
+Pushing a change to index.html deploys it automatically with GitHub Actions (it signs in to AWS with OIDC, so there are no stored keys), and the Lambda function has pytest tests that run on every change to it.
+
+The S3 and CloudFront setup is also written as Terraform in this repo. Still to do: add the visitor counter to the Terraform code.
 
 ## Files
 
